@@ -47,7 +47,37 @@ struct token
 
 };
 
-enum {
+struct lex_process;
+typedef char (*LEX_PROCESS_NEXT_CHAR)(struct lex_process* process);
+typedef char (*LEX_PROCESS_PEEK_CHAR)(struct lex_process* process);
+typedef void (*LEX_PROCESS_PUSH_CHAR)(struct lex_process* process, char c);
+
+struct lex_process_functions
+{
+    LEX_PROCESS_NEXT_CHAR next_char;
+    LEX_PROCESS_PEEK_CHAR peek_char;
+    LEX_PROCESS_PUSH_CHAR push_char;
+};
+
+struct lex_process
+{
+    struct pos pos;
+    struct vector* vec;
+    struct compile_process* compiler;
+
+    // Depth of expressions.
+    // IE: ((x)) would have a count of 2.
+    int current_expression_count;
+
+    struct buffer* parentheses_buffer;
+    struct lex_process_functions* function;
+
+    // Private data that the lexer does not understand, but the programmer does.
+    void* private;
+};
+
+enum
+{
     COMPILER_FILE_COMPILED_OK,
     COMPILER_FAILED_WITH_ERRORS
 };
@@ -56,6 +86,7 @@ struct compile_process
 {
     // Compile flags.
     int flags;
+    struct pos pos;
 
     struct compile_process_input_file
     {
@@ -71,5 +102,8 @@ int compile_file(const char* filename, const char *out_filename, int flags);
 
 // cprocess.c
 struct compile_process *compile_process_create(const char *filename, const char *filename_out, int flags);
+char compile_process_next_char(struct lex_process* lex_process);
+char compile_process_peek_char(struct lex_process* lex_process);
+void compile_process_push_char(struct lex_process* lex_process, char c);
 
 #endif
