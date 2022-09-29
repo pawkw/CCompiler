@@ -1,5 +1,6 @@
-#include "compiler.h"
 #include <string.h>
+#include <assert.h>
+#include "compiler.h"
 #include "helpers/vector.h"
 #include "helpers/buffer.h"
 
@@ -103,6 +104,26 @@ struct token* token_make_number()
     return token_make_number_for_value(read_number());
 }
 
+static struct token* token_make_string(char start_delim, char end_delim)
+{
+    struct buffer* buffer = buffer_create();
+
+    assert(nextc() == start_delim);
+    char c = nextc();
+    for(; c != end_delim && c != EOF; c = nextc())
+    {
+        if(c == '\\')
+        {
+            // Handle an escaped character.
+            continue;
+        }
+        buffer_write(buffer, c);
+    }
+    buffer_write(buffer, 0x00);
+
+    return token_create(&(struct token){.type = TOKEN_TYPE_STRING, .sval = buffer_ptr(buffer)});
+}
+
 struct token* read_next_token()
 {
     struct token* token = NULL;
@@ -114,6 +135,10 @@ struct token* read_next_token()
             /* File done. */
             break;
         
+        case '"':
+            token = token_make_string('"', '"');
+            break;
+
         case ' ':
         case '\t':
             token = handle_white_space();
@@ -138,7 +163,7 @@ void print_token(struct token* token)
         case(TOKEN_TYPE_IDENTIFIER):
         case(TOKEN_TYPE_KEYWORD):
         case(TOKEN_TYPE_STRING):
-            printf(" %s", token->sval);
+            printf(" \"%s\"", token->sval);
             break;
         case(TOKEN_TYPE_NUMBER):
             printf(" %lld", token->llnum);
