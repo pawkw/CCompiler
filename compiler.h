@@ -4,6 +4,8 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define NUMERIC_CASE case('0'): case('1'): case('2'): case('3'): case('4'): case('5'): case('6'): case('7'): case('8'): case('9')
+
 struct pos
 {
     int line;
@@ -29,10 +31,13 @@ enum
     TOKEN_TYPE_NEWLINE
 };
 
+extern const char* token_names[8];
+
 struct token
 {
     int type;
     int flags;
+    struct pos pos;
 
     union
     {
