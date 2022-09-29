@@ -104,6 +104,8 @@ struct compile_process
 };
 
 // compiler.c
+void compiler_error(struct compile_process* compiler, const char* message, ...);
+void compiler_warning(struct compile_process* compiler, const char* message, ...);
 int compile_file(const char* filename, const char *out_filename, int flags);
 
 // cprocess.c
